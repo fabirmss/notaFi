@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Nota Fácil</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        
+        .form-cadastro { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #218838; }
+        
+        .lista-usuarios { list-style: none; padding: 0; }
+        .lista-usuarios li { background: #fff; border-bottom: 1px solid #ddd; padding: 10px; display: flex; justify-content: space-between; }
+        .btn-sair { background-color: #dc3545; float: right; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="btn-sair" onclick="logout()">Sair</button>
+    <h1>Painel Administrativo</h1>
+    <p>Bem-vindo, Chefe. Aqui você cria os usuários da Loja e Emitentes.</p>
+
+    <div class="form-cadastro">
+        <h3>Cadastrar Novo Acesso</h3>
+        <input type="text" id="novoNome" placeholder="Nome da Loja ou Pessoa">
+        <input type="text" id="novoUser" placeholder="Usuário (Login)">
+        <input type="password" id="novaSenha" placeholder="Senha">
+        
+        <label>Tipo de Permissão:</label>
+        <select id="novoTipo">
+            <option value="loja">Loja (Acesso aos Produtos/Notas)</option>
+            <option value="emitente">Emitente (Acesso Operacional)</option>
+            <option value="admin">Administrador</option>
+        </select>
+        
+        <br><br>
+        <button onclick="cadastrarUsuario()">Salvar Usuário</button>
+    </div>
+
+    <h3>Usuários Ativos</h3>
+    <ul id="listaUsuarios" class="lista-usuarios">
+        </ul>
+</div>
+
+<script src="auth.js"></script>
+
+<script>
+    // 1. Proteção: Se não for admin, chuta pra fora
+    verificarPermissao("admin");
+
+    // 2. Função para Exibir a lista de usuários na tela
+    function carregarLista() {
+        const lista = document.getElementById("listaUsuarios");
+        lista.innerHTML = ""; // Limpa a lista antes de recarregar
+        
+        // Pega os usuários do auth.js (ou do localStorage se você salvou lá)
+        // Para este exemplo simples, vamos usar a variável global do auth.js + localStorage
+        let usuarios = JSON.parse(localStorage.getItem("bancoUsuarios")) || usuariosCadastrados;
+        
+        usuarios.forEach((u, index) => {
+            lista.innerHTML += `
+                <li>
+                    <strong>${u.nome}</strong> (${u.role}) - Login: ${u.user}
+                    <button onclick="removerUsuario(${index})" style="background:red; padding:5px; font-size:0.8em; width:auto;">X</button>
+                </li>
+            `;
+        });
+    }
+
+    // 3. Função para Cadastrar (Dar Permissão)
+    function cadastastrarUsuario() {
+        const nome = document.getElementById("novoNome").value;
+        const user = document.getElementById("novoUser").value;
+        const pass = document.getElementById("novaSenha").value;
+        const role = document.getElementById("novoTipo").value;
+
+        if(!user || !pass) return alert("Preencha tudo!");
+
+        // Pega a lista atual
+        let usuarios = JSON.parse(localStorage.getItem("bancoUsuarios")) || usuariosCadastrados;
+
+        // Adiciona o novo
+        usuarios.push({ user: user, pass: pass, role: role, nome: nome });
+
+        // Salva no navegador (para funcionar nas outras telas)
+        localStorage.setItem("bancoUsuarios", JSON.stringify(usuarios));
+        
+        alert("Usuário criado com sucesso!");
+        carregarLista(); // Atualiza a tela
+    }
+
+    // 4. Função para Remover
+    function removerUsuario(index) {
+        let usuarios = JSON.parse(localStorage.getItem("bancoUsuarios")) || usuariosCadastrados;
+        usuarios.splice(index, 1);
+        localStorage.setItem("bancoUsuarios", JSON.stringify(usuarios));
+        carregarLista();
+    }
+
+    // Carrega a lista assim que a página abre
+    carregarLista();
+</script>
+
+</body>
+</html>
