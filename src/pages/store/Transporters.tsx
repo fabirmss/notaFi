@@ -88,22 +88,32 @@ const formatDocument = (value: string) => {
           transportadora_pj(razaosocial, cnpj, inscricaoestadual)
         `);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar transportadoras:', error);
+        throw error;
+      }
 
-      const normalizedData = data?.map(t => ({
-        id: t.idtransportadora,
-        tipo: t.tipo,
-        documento: t.tipo === 'PF' ? t.transportadora_pf?.cpf : t.transportadora_pj?.cnpj,
-        nome_razao: t.tipo === 'PF' ? t.transportadora_pf?.nome : t.transportadora_pj?.razaosocial,
-        municipio: t.municipio,
-        uf: t.uf,
-        endereco: t.endereco,
-        original: t
-      }));
+      console.log('Dados brutos da API:', data);
 
+      const normalizedData = data?.map(t => {
+        console.log('Processando transportadora:', t);
+        return {
+          id: t.idtransportadora,
+          tipo: t.tipo,
+          documento: t.tipo === 'PF' ? t.transportadora_pf?.[0]?.cpf : t.transportadora_pj?.[0]?.cnpj,
+          nome_razao: t.tipo === 'PF' ? t.transportadora_pf?.[0]?.nome : t.transportadora_pj?.[0]?.razaosocial,
+          municipio: t.municipio,
+          uf: t.uf,
+          endereco: t.endereco,
+          original: t
+        };
+      });
+
+      console.log('Dados normalizados:', normalizedData);
       setCarriers(normalizedData || []);
     } catch (error: any) {
-      toast({ title: "Erro", description: "Falha ao carregar transportadoras.", variant: "destructive" });
+      console.error('Erro completo:', error);
+      toast({ title: "Erro", description: "Falha ao carregar transportadoras: " + error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
