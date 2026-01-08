@@ -109,6 +109,7 @@ const formatDocument = (value: string) => {
         };
       });
 
+      
       console.log('Dados normalizados:', normalizedData);
       setCarriers(normalizedData || []);
     } catch (error: any) {
